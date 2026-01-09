@@ -1,0 +1,110 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          String    // SYS, DM, DDM, TL, EMP
+  
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  
+  managerId     String?
+  manager       User?     @relation("UserManagement", fields: [managerId], references: [id])
+  employees     User[]    @relation("UserManagement")
+
+  // Relations
+  evaluations   Evaluation[]
+  reviews       ManagerReview[] // Reviews given by this user (as manager)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+}
+
+model EvaluationCycle {
+  id        String       @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    String       // ACTIVE, CLOSED, UPCOMING
+  evaluations Evaluation[]
+}
+
+model Evaluation {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  cycleId         String?
+  cycle           EvaluationCycle? @relation(fields: [cycleId], references: [id])
+  
+  month           Int?
+  year            Int?
+  
+  status          String           // DRAFT, SUBMITTED, REVIEWED, APPROVED, REJECTED
+  totalScore      Float?
+  rank            String?
+  
+  tasks           Task[]
+  reviews         ManagerReview[]
+  
+  submittedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Task {
+  id              String      @id @default(cuid())
+  evaluationId    String
+  evaluation      Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  
+  name            String
+  category        String?
+  weight          Float?
+  
+  // Excel Logic Fields
+  targetQuantity  Float?
+  actualQuantity  Float?
+  unitPrice       Float?
+  convertedValue  Float?
+  
+  // Sub-tasks for detailed reporting
+  subTasks        String?     // JSON string: [{ id, name, result }]
+  
+  startDate       String?
+  deadline        String?
+  actualFinish    String?
+  collaboration   String?
+  resultDescription String?
+  selfScore       Float?
+  managerScore    Float?
+  note            String?
+}
+
+model ManagerReview {
+  id              String      @id @default(cuid())
+  evaluationId    String
+  evaluation      Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  
+  managerId       String
+  manager         User        @relation(fields: [managerId], references: [id])
+  
+  comment         String?
+  score           Float?
+  decision        String      // APPROVE, REVISE, REJECT
+  reviewedAt      DateTime    @default(now())
+}
