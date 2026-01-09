@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Send, CheckCircle2, Award, Info, ChevronLeft, Printer, Download, Clock } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function KPIPage() {
+function KPIPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -250,3 +250,12 @@ export default function KPIPage() {
         </div>
     );
 }
+
+export default function KPIPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Đang tải...</div>}>
+            <KPIPageContent />
+        </Suspense>
+    );
+}
+

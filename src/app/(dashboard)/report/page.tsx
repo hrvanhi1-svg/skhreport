@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { ArrowRight, Lock, Plus, Save, ArrowLeft } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -10,7 +10,7 @@ interface SubTask {
     result: string;
 }
 
-export default function ReportPage() {
+function ReportPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -255,3 +255,12 @@ export default function ReportPage() {
         </div>
     );
 }
+
+export default function ReportPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Đang tải...</div>}>
+            <ReportPageContent />
+        </Suspense>
+    );
+}
+
